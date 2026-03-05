@@ -386,6 +386,7 @@
                             <option value="Digital Marketing">Digital Marketing</option>
                             <option value="Flutter Development">Flutter Development</option>
                             <option value="Robotics">Robotics</option>
+                            <option value="ML/AI">ML/AI</option>
                         </select>
                         <div class="error-message" id="error-course">Please select a course program.</div>
                     </div>
@@ -396,6 +397,8 @@
                             <option value="3 Months">3 Months</option>
                             <option value="4 Months">4 Months</option>
                             <option value="6 Months">6 Months</option>
+                            <option value="30 Days">30 Days</option>
+                            <option value="45 Days">45 Days</option>
                         </select>
                         <div class="error-message" id="error-duration">Please specify the program duration.</div>
                     </div>
@@ -552,12 +555,18 @@
 
             if (joiningDateInput.value && durationInput.value) {
                 const joiningDate = new Date(joiningDateInput.value);
-                const durationMatch = durationInput.value.match(/\d+/);
-                const durationMonths = durationMatch ? parseInt(durationMatch[0]) : 0;
+                const durationValue = durationInput.value;
+                const durationMatch = durationValue.match(/\d+/);
+                const durationNum = durationMatch ? parseInt(durationMatch[0]) : 0;
 
-                if (!isNaN(joiningDate.getTime()) && durationMonths > 0) {
+                if (!isNaN(joiningDate.getTime()) && durationNum > 0) {
                     const validityDate = new Date(joiningDate);
-                    validityDate.setMonth(validityDate.getMonth() + durationMonths);
+
+                    if (durationValue.toLowerCase().includes("month")) {
+                        validityDate.setMonth(validityDate.getMonth() + durationNum);
+                    } else if (durationValue.toLowerCase().includes("day")) {
+                        validityDate.setDate(validityDate.getDate() + durationNum);
+                    }
 
                     const yyyy = validityDate.getFullYear();
                     const mm = String(validityDate.getMonth() + 1).padStart(2, '0');
@@ -573,7 +582,8 @@
             "Data Analytics": "4 Months",
             "Digital Marketing": "3 Months",
             "Flutter Development": "4 Months",
-            "Robotics": "3 Months"
+            "Robotics": "3 Months",
+            "ML/AI": "45 Days"
         };
 
         window.onload = () => {

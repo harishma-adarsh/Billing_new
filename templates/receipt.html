@@ -348,7 +348,8 @@
                         <td class="text-center font-bold">{{ data.course }}</td>
                         <td class="text-right" style="border-right: none; width: 6%;">{{ data.duration.split(' ')[0] }}
                         </td>
-                        <td class="text-left" style="border-left: none; width: 8%;">Months</td>
+                        <td class="text-left" style="border-left: none; width: 8%;">{{ data.duration.split(' ')[1] }}
+                        </td>
                         <td class="text-center">{{ data.approved }}</td>
                         <td class="amount-cell"><span class="currency-symbol">₹</span>{{ "{:,.2f}".format(data.fee) }}
                         </td>
