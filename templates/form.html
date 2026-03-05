@@ -385,14 +385,19 @@
 
                 if (prefillData.total_installments) {
                     document.getElementsByName('installment')[0].value = prefillData.total_installments;
-                    if (prefillData.previous_total_paid > 0) {
-                        document.getElementsByName('installment')[0].classList.add('readonly-input');
-                        document.getElementsByName('installment')[0].readOnly = true;
-                    }
                 }
 
                 if (prefillData.next_installment) {
-                    document.getElementsByName('approved')[0].value = prefillData.next_installment;
+                    let nextInst = prefillData.next_installment;
+                    if (!isNaN(nextInst)) {
+                        let n = parseInt(nextInst);
+                        const suffixes = ["th", "st", "nd", "rd"];
+                        const v = n % 100;
+                        const suffix = suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0];
+                        document.getElementsByName('approved')[0].value = n + suffix + " Installment";
+                    } else {
+                        document.getElementsByName('approved')[0].value = nextInst;
+                    }
                 }
 
                 if (prefillData.previous_total_paid) {
@@ -529,6 +534,8 @@
                             <option value="1">1 Installment</option>
                             <option value="2">2 Installments</option>
                             <option value="3" selected>3 Installments</option>
+                            <option value="4">4 Installments</option>
+                            <option value="5">5 Installments</option>
                         </select>
                     </div>
                 </div>

@@ -66,9 +66,15 @@ def init_db():
                 invoice_no TEXT,
                 amount INTEGER,
                 payment_date TEXT,
+                installment_text TEXT,
                 FOREIGN KEY (student_id) REFERENCES students (id)
             )
         ''')
+        # Check if installment_text exists for existing databases
+        cursor = conn.execute("PRAGMA table_info(payments)")
+        columns = [column[1] for column in cursor.fetchall()]
+        if 'installment_text' not in columns:
+            conn.execute("ALTER TABLE payments ADD COLUMN installment_text TEXT")
     # Migrate existing JSON data if it exists
     if os.path.exists("students.json"):
         try:
@@ -110,9 +116,9 @@ def save_student_db(data):
         if "payments" in data:
             for p in data["payments"]:
                 conn.execute('''
-                    INSERT INTO payments (student_id, invoice_no, amount, payment_date)
-                    VALUES (?, ?, ?, ?)
-                ''', (s_id, p["invoice"], p["amount"], p["date"]))
+                    INSERT INTO payments (student_id, invoice_no, amount, payment_date, installment_text)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (s_id, p["invoice"], p["amount"], p["date"], p.get("installment", "")))
         return s_id
 
 init_db()
@@ -152,8 +158,29 @@ def registration():
             "fee_preset": request.form.get("fee_preset", 0),
             "discount_preset": request.form.get("discount_preset", 0)
         }
-        # Save student to DB
-        save_student_db(data)
+        # Save student to DB and get their ID
+        s_id = save_student_db(data)
+        
+        # 3. CRITICAL: Fetch ACTUAL history from DB (prevents state mismatch if search was skipped)
+        with sqlite3.connect(DATABASE) as conn:
+            conn.row_factory = sqlite3.Row
+            student = conn.execute("SELECT * FROM students WHERE id = ?", (s_id,)).fetchone()
+            payments = conn.execute("SELECT amount FROM payments WHERE student_id = ?", (s_id,)).fetchall()
+            
+            total_paid = sum(p['amount'] for p in payments)
+            data["previous_total_paid"] = total_paid
+            data["fee_preset"] = student['fee'] if student['fee'] is not None else 0
+            data["discount_preset"] = student['discount'] if student['discount'] is not None else 0
+            data["total_installments"] = student['total_installments'] or data.get("total_installments", 3)
+            
+            num_paid = len(payments)
+            data["next_installment"] = str(num_paid + 1)
+            
+            # If search wasn't used, we should still handle the registration successfully
+            from datetime import datetime
+            if not data.get("joining_date"):
+                data["joining_date"] = datetime.now().strftime("%Y-%m-%d")
+
         return render_template("form.html", prefill=data)
     return render_template("registration.html")
 
@@ -253,9 +280,9 @@ def receipt():
                 
             payment = conn.execute('''
                 SELECT invoice_no FROM payments 
-                WHERE student_id = ? AND amount = ? AND payment_date = ?
+                WHERE student_id = ? AND amount = ? AND payment_date = ? AND installment_text = ?
                 ORDER BY id DESC LIMIT 1
-            ''', (s_id, paid_amount, search_date)).fetchone()
+            ''', (s_id, paid_amount, search_date, request.form.get("approved"))).fetchone()
             
             if payment:
                 existing_invoice = payment['invoice_no']
@@ -333,9 +360,9 @@ def receipt():
                 
                 # Record payment
                 conn.execute('''
-                    INSERT INTO payments (student_id, invoice_no, amount, payment_date)
-                    VALUES (?, ?, ?, ?)
-                ''', (s_id, invoice_no, paid_amount, data["invoice_date"]))
+                    INSERT INTO payments (student_id, invoice_no, amount, payment_date, installment_text)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (s_id, invoice_no, paid_amount, data["invoice_date"], request.form.get("approved")))
             else:
                 # Duplicate submittion (refresh) - No changes to payment history
                 pass

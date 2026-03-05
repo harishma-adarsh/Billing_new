@@ -282,7 +282,6 @@
             <input type="hidden" name="next_installment" value="1">
             <input type="hidden" name="fee_preset" value="0">
             <input type="hidden" name="discount_preset" value="0">
-            <input type="hidden" name="total_installments" value="3">
 
             <div class="glass-card">
                 <div class="card-header-flex">
@@ -411,6 +410,16 @@
                         <label class="form-label">Course Validity Till</label>
                         <input type="date" class="form-control" name="validity" readonly
                             style="background: #eef2ff; font-weight: 600; color: var(--primary);">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Total Installment Plan</label>
+                        <select class="form-select" name="total_installments">
+                            <option value="1">1 Installment</option>
+                            <option value="2">2 Installments</option>
+                            <option value="3" selected>3 Installments</option>
+                            <option value="4">4 Installments</option>
+                            <option value="5">5 Installments</option>
+                        </select>
                     </div>
                 </div>
 
