@@ -1,4 +1,3 @@
 Flask
-xhtml2pdf
 num2words
 gunicorn

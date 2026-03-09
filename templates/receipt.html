@@ -252,10 +252,43 @@
             font-size: 10px;
             color: #444;
         }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #0170B8;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .print-btn:hover {
+            background: #015a94;
+        }
+
+        @media print {
+            .print-btn {
+                display: none !important;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <button class="print-btn" onclick="window.print()">⬇ Download PDF</button>
 
     <div class="receipt-container">
 
@@ -351,13 +384,13 @@
                         <td class="text-left" style="border-left: none; width: 8%;">{{ data.duration.split(' ')[1] }}
                         </td>
                         <td class="text-center">{{ data.approved }}</td>
-                        <td class="amount-cell"><span class="currency-symbol">&#8377;</span>{{
+                        <td class="amount-cell"><span class="currency-symbol">₹</span>{{
                             "{:,.2f}".format(data.fee) }}
                         </td>
-                        <td class="amount-cell"><span class="currency-symbol">&#8377;</span>{{
+                        <td class="amount-cell"><span class="currency-symbol">₹</span>{{
                             "{:,.2f}".format(data.discount)
                             }}</td>
-                        <td class="amount-cell shaded font-bold"><span class="currency-symbol">&#8377;</span>{{
+                        <td class="amount-cell shaded font-bold"><span class="currency-symbol">₹</span>{{
                             "{:,.2f}".format(data.paid_amount) }}</td>
                     </tr>
                     <tr class="shaded">
@@ -368,13 +401,13 @@
                             </div>
                         </td>
                         <td class="amount-cell font-bold">
-                            <span class="currency-symbol">&#8377;</span>{{ "{:,.2f}".format(data.paid_amount) }}
+                            <span class="currency-symbol">₹</span>{{ "{:,.2f}".format(data.paid_amount) }}
                         </td>
                     </tr>
                     <tr>
                         <td colspan="6" class="text-right font-bold">Balance</td>
                         <td class="amount-cell font-bold">
-                            <span class="currency-symbol">&#8377;</span>{% if data.balance > 0 %}{{
+                            <span class="currency-symbol">₹</span>{% if data.balance > 0 %}{{
                             "{:,.2f}".format(data.balance) }}{% else %}-{% endif %}
                         </td>
                     </tr>

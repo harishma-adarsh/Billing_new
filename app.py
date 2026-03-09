@@ -1,8 +1,6 @@
 import os
-from flask import Flask, render_template, request, send_file
-from xhtml2pdf import pisa
+from flask import Flask, render_template, request
 import tempfile
-import io
 
 app = Flask(__name__)
 
@@ -368,22 +366,7 @@ def receipt():
                 # Duplicate submittion (refresh) - No changes to payment history
                 pass
 
-    html = render_template("receipt.html", data=data)
-
-    student_name = request.form.get("name", "Student").replace(" ", "_")
-    pdf_buffer = io.BytesIO()
-    pisa_status = pisa.CreatePDF(html.encode('utf-8'), dest=pdf_buffer, encoding='utf-8')
-
-    if pisa_status.err:
-        return "Error generating PDF", 500
-
-    pdf_buffer.seek(0)
-    return send_file(
-        pdf_buffer,
-        as_attachment=True,
-        download_name=f"{invoice_no}_{student_name}.pdf",
-        mimetype='application/pdf'
-    )
+    return render_template("receipt.html", data=data)
 
 
 if __name__ == '__main__':

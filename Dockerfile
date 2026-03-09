@@ -1,13 +1,7 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
-# Install system dependencies for xhtml2pdf (pycairo needs cairo dev libs)
-RUN apt-get update && apt-get install -y \
-    python3-pip \
-    python3-cffi \
-    pkg-config \
-    libcairo2-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# No extra system dependencies needed
 
 # Set the working directory in the container
 WORKDIR /app
