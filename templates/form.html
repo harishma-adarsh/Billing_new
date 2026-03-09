@@ -391,10 +391,7 @@
                     let nextInst = prefillData.next_installment;
                     if (!isNaN(nextInst)) {
                         let n = parseInt(nextInst);
-                        const suffixes = ["th", "st", "nd", "rd"];
-                        const v = n % 100;
-                        const suffix = suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0];
-                        document.getElementsByName('approved')[0].value = n + suffix + " Installment";
+                        document.getElementsByName('approved')[0].value = n;
                     } else {
                         document.getElementsByName('approved')[0].value = nextInst;
                     }
@@ -526,7 +523,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Current Installment No</label>
-                        <input type="text" class="form-control" name="approved" placeholder="e.g. 1st Installment">
+                        <input type="text" class="form-control" name="approved" placeholder="e.g. 1">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Total Installment Plan</label>
