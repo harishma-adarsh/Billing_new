@@ -351,11 +351,13 @@
                         <td class="text-left" style="border-left: none; width: 8%;">{{ data.duration.split(' ')[1] }}
                         </td>
                         <td class="text-center">{{ data.approved }}</td>
-                        <td class="amount-cell"><span class="currency-symbol">₹</span>{{ "{:,.2f}".format(data.fee) }}
+                        <td class="amount-cell"><span class="currency-symbol">&#8377;</span>{{
+                            "{:,.2f}".format(data.fee) }}
                         </td>
-                        <td class="amount-cell"><span class="currency-symbol">₹</span>{{ "{:,.2f}".format(data.discount)
+                        <td class="amount-cell"><span class="currency-symbol">&#8377;</span>{{
+                            "{:,.2f}".format(data.discount)
                             }}</td>
-                        <td class="amount-cell shaded font-bold"><span class="currency-symbol">₹</span>{{
+                        <td class="amount-cell shaded font-bold"><span class="currency-symbol">&#8377;</span>{{
                             "{:,.2f}".format(data.paid_amount) }}</td>
                     </tr>
                     <tr class="shaded">
@@ -366,13 +368,13 @@
                             </div>
                         </td>
                         <td class="amount-cell font-bold">
-                            <span class="currency-symbol">₹</span>{{ "{:,.2f}".format(data.paid_amount) }}
+                            <span class="currency-symbol">&#8377;</span>{{ "{:,.2f}".format(data.paid_amount) }}
                         </td>
                     </tr>
                     <tr>
                         <td colspan="6" class="text-right font-bold">Balance</td>
                         <td class="amount-cell font-bold">
-                            <span class="currency-symbol">₹</span>{% if data.balance > 0 %}{{
+                            <span class="currency-symbol">&#8377;</span>{% if data.balance > 0 %}{{
                             "{:,.2f}".format(data.balance) }}{% else %}-{% endif %}
                         </td>
                     </tr>

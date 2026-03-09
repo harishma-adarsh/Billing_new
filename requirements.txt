@@ -1,4 +1,4 @@
 Flask
-WeasyPrint
+xhtml2pdf
 num2words
 gunicorn

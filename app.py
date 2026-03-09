@@ -1,7 +1,8 @@
 import os
 from flask import Flask, render_template, request, send_file
-from weasyprint import HTML
+from xhtml2pdf import pisa
 import tempfile
+import io
 
 app = Flask(__name__)
 
@@ -369,12 +370,20 @@ def receipt():
 
     html = render_template("receipt.html", data=data)
 
-    base_url = os.path.dirname(os.path.abspath(__file__))
+    student_name = request.form.get("name", "Student").replace(" ", "_")
+    pdf_buffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(html.encode('utf-8'), dest=pdf_buffer, encoding='utf-8')
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as pdf:
-        HTML(string=html, base_url=base_url).write_pdf(pdf.name)
-        student_name = request.form.get("name", "Student").replace(" ", "_")
-        return send_file(pdf.name, as_attachment=True, download_name=f"{invoice_no}_{student_name}.pdf")
+    if pisa_status.err:
+        return "Error generating PDF", 500
+
+    pdf_buffer.seek(0)
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"{invoice_no}_{student_name}.pdf",
+        mimetype='application/pdf'
+    )
 
 
 if __name__ == '__main__':
