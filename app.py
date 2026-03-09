@@ -247,19 +247,20 @@ def proceed_to_billing():
 @app.route('/receipt', methods=["POST"])
 def receipt():
 
-    invoice_no = get_next_invoice_number()
+    def safe_int(val):
+        try:
+            return int(float(val)) if val else 0
+        except (ValueError, TypeError):
+            return 0
 
     name = request.form.get("name", "").strip()
     email = request.form.get("email", "").strip()
     phone = request.form.get("phone", "").strip()
-
-    name = request.form.get("name")
-    email = request.form.get("email")
-    phone = request.form.get("phone")
-    paid_amount = int(request.form.get("paid_amount", 0))
-    already_paid = int(request.form.get("already_paid", 0))
-    total_fee = int(request.form.get("fee", 0))
-    discount = int(request.form.get("discount", 0))
+    
+    paid_amount = safe_int(request.form.get("paid_amount"))
+    already_paid = safe_int(request.form.get("already_paid"))
+    total_fee = safe_int(request.form.get("fee"))
+    discount = safe_int(request.form.get("discount"))
     
     # 1. Check if payment already exists (Prevent Refresh Duplicate)
     # We do this BEFORE incrementing the invoice number
