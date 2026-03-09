@@ -288,7 +288,7 @@
 
 <body>
 
-    <button class="print-btn" onclick="window.print()">⬇ Download PDF</button>
+    <button class="print-btn" onclick="downloadPDF()">⬇ Download PDF</button>
 
     <div class="receipt-container">
 
@@ -439,6 +439,28 @@
             <div class="thank-you">Thank you for joining us!!! Start learning and get hired fast.</div>
             <div class="computer-gen">This is computer generated invoice no signature required.</div>
         </div>
+    </div>
+
+    <!-- html2pdf.js to handle proper PDF generation and auto-download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        function downloadPDF() {
+            var element = document.querySelector('.receipt-container');
+            var opt = {
+                margin: [10, 10, 10, 10], // top, right, bottom, left in mm
+                filename: '{{ data.invoice }}_{{ data.name }}.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        window.onload = function () {
+            // Automatically download standard PDF when page loads
+            downloadPDF();
+        };
+    </script>
 
 </body>
 
