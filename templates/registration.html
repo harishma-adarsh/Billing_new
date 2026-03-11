@@ -567,12 +567,24 @@
                 const durationNum = durationMatch ? parseInt(durationMatch[0]) : 0;
 
                 if (!isNaN(joiningDate.getTime()) && durationNum > 0) {
-                    const validityDate = new Date(joiningDate);
+                    let validityDate = new Date(joiningDate);
 
+                    // 1. Initial base calculation (Inclusive: Duration - 1)
                     if (durationValue.toLowerCase().includes("month")) {
                         validityDate.setMonth(validityDate.getMonth() + durationNum);
+                        validityDate.setDate(validityDate.getDate() - 1); // e.g., Jan 15 to Feb 14
                     } else if (durationValue.toLowerCase().includes("day")) {
-                        validityDate.setDate(validityDate.getDate() + durationNum);
+                        validityDate.setDate(validityDate.getDate() + durationNum - 1);
+                    }
+
+                    // 2. Loop through and extend for every Sunday found
+                    // We start from the beginning and push validityDate forward for every Sunday in the range
+                    let tempDate = new Date(joiningDate);
+                    while (tempDate <= validityDate) {
+                        if (tempDate.getDay() === 0) { // 0 is Sunday
+                            validityDate.setDate(validityDate.getDate() + 1);
+                        }
+                        tempDate.setDate(tempDate.getDate() + 1);
                     }
 
                     const yyyy = validityDate.getFullYear();
