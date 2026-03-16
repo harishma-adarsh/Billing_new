@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, render_template, request
 import tempfile
 
@@ -57,6 +58,8 @@ def init_db():
             conn.execute("ALTER TABLE students ADD COLUMN approved_text TEXT")
         if 'salutation' not in columns:
             conn.execute("ALTER TABLE students ADD COLUMN salutation TEXT")
+        if 'validity' not in columns:
+            conn.execute("ALTER TABLE students ADD COLUMN validity TEXT")
 
         conn.execute('''
             CREATE TABLE IF NOT EXISTS payments (
@@ -97,18 +100,18 @@ def save_student_db(data):
             # Update existing
             conn.execute('''
                 UPDATE students SET 
-                name=?, address=?, alt_phone=?, course=?, duration=?, joining_date=?, total_installments=?, salutation=?
+                name=?, address=?, alt_phone=?, course=?, duration=?, joining_date=?, validity=?, total_installments=?, salutation=?
                 WHERE id=?
             ''', (data.get("name"), data.get("address"), data.get("alt_phone"), 
-                  data.get("course"), data.get("duration"), data.get("joining_date"), data.get("total_installments"), data.get("salutation"), student['id']))
+                  data.get("course"), data.get("duration"), data.get("joining_date"), data.get("validity"), data.get("total_installments"), data.get("salutation"), student['id']))
             s_id = student['id']
         else:
             # Insert new
             cursor = conn.execute('''
-                INSERT INTO students (name, email, phone, address, alt_phone, course, duration, joining_date, total_installments, salutation)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO students (name, email, phone, address, alt_phone, course, duration, joining_date, validity, total_installments, salutation)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (data.get("name"), data.get("email"), data.get("phone"), data.get("address"), 
-                  data.get("alt_phone"), data.get("course"), data.get("duration"), data.get("joining_date"), data.get("total_installments"), data.get("salutation")))
+                  data.get("alt_phone"), data.get("course"), data.get("duration"), data.get("joining_date"), data.get("validity"), data.get("total_installments"), data.get("salutation")))
             s_id = cursor.lastrowid
         
         # Save payments if provided in the data (used for migrations/updates)
@@ -130,33 +133,31 @@ def home():
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
     if request.method == 'POST':
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
-        phone = request.form.get("phone", "").strip()
-        
-        if not name:
-            return "Name cannot be blank", 400
-        if not email or "@" not in email:
-            return "Valid email is required", 400
-        if not phone or len(phone) < 10:
-            return "Valid 10-digit phone number is required", 400
-
-        # Get data from registration form
+        # Get data from registration form and strip all strings
         data = {
-            "name": name,
-            "address": request.form.get("address"),
-            "email": email,
-            "phone": phone,
-            "alt_phone": request.form.get("alt_phone"),
-            "course": request.form.get("course"),
-            "duration": request.form.get("duration"),
-            "joining_date": request.form.get("joining_date"),
-            "previous_total_paid": request.form.get("previous_total_paid", 0),
-            "total_installments": request.form.get("total_installments", 3),
-            "next_installment": request.form.get("next_installment", 1),
-            "fee_preset": request.form.get("fee_preset", 0),
-            "discount_preset": request.form.get("discount_preset", 0)
+            "name": request.form.get("name", "").strip(),
+            "address": request.form.get("address", "").strip(),
+            "email": request.form.get("email", "").strip(),
+            "phone": request.form.get("phone", "").strip(),
+            "alt_phone": request.form.get("alt_phone", "").strip(),
+            "course": request.form.get("course", "").strip(),
+            "duration": request.form.get("duration", "").strip(),
+            "joining_date": request.form.get("joining_date", "").strip(),
+            "validity": request.form.get("validity", "").strip(),
+            "salutation": request.form.get("salutation", "Mr.").strip(),
+            "previous_total_paid": int(request.form.get("previous_total_paid", 0)),
+            "total_installments": int(request.form.get("total_installments", 1)),
+            "next_installment": request.form.get("next_installment", "1"),
+            "fee_preset": int(request.form.get("fee_preset", 0)),
+            "discount_preset": int(request.form.get("discount_preset", 0))
         }
+        
+        if not data["name"]:
+            return "Name cannot be blank", 400
+        if not data["email"] or "@" not in data["email"]:
+            return "Valid email is required", 400
+        if not data["phone"] or len(data["phone"]) < 10:
+            return "Valid 10-digit phone number is required", 400
         # Save student to DB and get their ID
         s_id = save_student_db(data)
         
@@ -170,10 +171,14 @@ def registration():
             data["previous_total_paid"] = total_paid
             data["fee_preset"] = student['fee'] if student['fee'] is not None else 0
             data["discount_preset"] = student['discount'] if student['discount'] is not None else 0
-            data["total_installments"] = student['total_installments'] or data.get("total_installments", 3)
+            data["total_installments"] = student['total_installments'] or data.get("total_installments", 1)
             
             num_paid = len(payments)
-            data["next_installment"] = str(num_paid + 1)
+            total_allowed = data["total_installments"]
+            if num_paid >= total_allowed:
+                data["next_installment"] = "Payment Completed"
+            else:
+                data["next_installment"] = str(num_paid + 1)
             
             # If search wasn't used, we should still handle the registration successfully
             from datetime import datetime
@@ -216,10 +221,9 @@ def search_student():
             total_paid = sum(p['amount'] for p in payments)
             student_data["previous_total_paid"] = total_paid
             
-            total_allowed = student_data.get("total_installments")
-            if not total_allowed:
-                total_allowed = 1
-                student_data["total_installments"] = 1
+            # Use current installments from student record or default to 1
+            total_allowed = student_data.get("total_installments") or 1
+            student_data["total_installments"] = total_allowed
                 
             num_paid = len(payments)
             if num_paid >= total_allowed:
@@ -230,6 +234,9 @@ def search_student():
             # Return fee and discount if they exist
             student_data["fee_preset"] = student['fee'] if student['fee'] is not None else 0
             student_data["discount_preset"] = student['discount'] if student['discount'] is not None else 0
+            
+            # Ensure validity is included
+            student_data["validity"] = student['validity'] or ""
             
             return {"success": True, "data": student_data}
             

@@ -342,22 +342,14 @@
                             data.joining_date }}</td>
                     </tr>
                     <tr style="border: none;">
-                        <td style="border: none; padding: 1px 5px; text-align: right; font-weight: bold;">Payment Method
-                            :</td>
-                        <td style="border: none; padding: 1px 0; text-align: left; padding-left: 10px;">{{
-                            data.payment_method }}</td>
-                    </tr>
-                    <tr style="border: none;">
-                        <td style="border: none; padding: 1px 5px; text-align: right; font-weight: bold;">Reference # :
+                        <td style="border: none; padding: 1px 5px; text-align: right; font-weight: bold;">Payment Mode :</td>
+                        <td style="border: none; padding: 1px 0; text-align: left; padding-left: 10px;">
+                            {{ data.payment_method }}{% if data.payment_method != 'Cash' and data.reference and data.reference != 'NA' %} - {{ data.reference }}{% endif %}
                         </td>
-                        <td style="border: none; padding: 1px 0; text-align: left; padding-left: 10px;">{{
-                            data.reference or 'NA' }}</td>
                     </tr>
                     <tr style="border: none;">
-                        <td style="border: none; padding: 1px 5px; text-align: right; font-weight: bold;">Approved
-                            Installments :</td>
-                        <td style="border: none; padding: 1px 0; text-align: left; padding-left: 10px;">{{
-                            data.installment }}</td>
+                        <td style="border: none; padding: 1px 5px; text-align: right; font-weight: bold;">Approved Installments :</td>
+                        <td style="border: none; padding: 1px 0; text-align: left; padding-left: 10px;">{{ data.installment }}</td>
                     </tr>
                 </table>
             </div>
@@ -419,7 +411,7 @@
             <ul class="notes-list">
                 <li>* This invoice is subject to mutually acceptable terms and conditions.</li>
                 <li>* The allocated time for your daily classes is set to 3 Hrs. a day / 18 Hrs. a week.</li>
-                <li>* The second and third installments are due every 25 days respectively from the date of joining. (If
+                <li>* The second and third installments are due every {{ data.duration.split(' ')[0] or '25' }} days respectively from the date of joining. (If
                     applicable)</li>
                 <li>* Your course validity / duration will be till <span class="validity-date">{{ data.validity
                         }}</span></li>
